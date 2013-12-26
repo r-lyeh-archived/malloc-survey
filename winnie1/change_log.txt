@@ -1,0 +1,36 @@
+
+Winnie Alloc library.
+
+ver 0.5:
+
+Winnie::Realloc function was added
+winnie_alloc headers moved to "include" folder.
+SystemAlloc now use 'malloc' function instead 'VirtualAlloc' to avoid memory leaks in DLL undloading context
+Minimal block size of memory taked from OS was reduced to 1 megabyte
+'throw_std_bad_alloc' constant from Winnie::Config was replaced by WINNIE_ALLOC_THROW_STD_BADALLOC macro
+
+ver 0.4:
+walloc_test - 
+`op_new_break_alloc` variable (to set break on block allocation with specified number)
+now in debug mode all blocks are linked to list, so you can enumerate them all 
+(for seeking memory leaks, for example)
+Many other useful debug functions now available(OpNewValidateHeap and other)
+
+tracking is block array or not were mixed up in new(nothrow) and new(nothrow)[]. Fixed.
+
+winnie_alloc -
+nothing changed
+
+
+ver 0.3:
+
+walloc_test - 
+example of (optional) multithreading support, 
+adding operator void *operator new/new[](size_t size, const std::nothrow_t&)
+transfer definitions of operators new/delete to file `new_delete.cpp` (now you can just add to your project, or copy'n'paste)
+many asserts were added, which raise in debug mode.
+new/delete now can be cofigured by new_delete_config.h 
+
+winnie_alloc -
+renamed Winnie::Statistic::num_block_allocatons to Winnie::Statistic::num_block_allocations *^_^*
+USE_MALLOC_THRESHOLD parameter added to winie_alloc_config.h  

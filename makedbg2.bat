@@ -1,0 +1,1 @@
+@makedbg1 %* %%* -I \prj\boost_1_55_0 \prj\boost_1_55_0\lib32-msvc-12.0\*thread-vc120-mt-sgd-*.lib \prj\boost_1_55_0\lib32-msvc-12.0\*system-vc120-mt-sgd-*.lib \prj\boost_1_55_0\lib32-msvc-12.0\*date_time-vc120-mt-sgd-*.lib \prj\boost_1_55_0\lib32-msvc-12.0\*chrono-vc120-mt-sgd-*.lib
