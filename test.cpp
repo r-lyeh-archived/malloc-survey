@@ -1,4 +1,4 @@
-// allocators benchmark, MIT licensed.
+// allocators benchmark, BOOST licensed.
 // - rlyeh 2013
 
 // @todo
