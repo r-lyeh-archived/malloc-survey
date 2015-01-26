@@ -1,4 +1,4 @@
-// allocators benchmark, BOOST licensed.
+// allocators benchmark, MIT licensed.
 // - rlyeh 2013
 
 // @todo
@@ -37,8 +37,9 @@
 // [1]
 #include <boost/pool/pool_alloc.hpp>
 
-#if 0 // comment out before making an .exe just to be sure these are not defined elsewhere,
-      // then comment it back and recompile.
+#if 0
+// comment out before making an .exe just to be sure these are not defined elsewhere,
+// then comment it back and recompile.
 void *operator new( size_t size ) { return std::malloc( size ); }
 void *operator new[]( size_t size ) { return std::malloc( size ); }
 void operator delete( void *ptr ) { return std::free( ptr ); }
