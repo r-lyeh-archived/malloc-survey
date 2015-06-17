@@ -3,7 +3,84 @@ test-allocators
 
 A few allocation benchmarks, and results below:
 
+```lisp
+
++---------------+
+| running tests |X
++---------------+X
+ XXXXXXXXXXXXXXXXX
+
+single: std::allocator 100325us
+multi: std::allocator 253763us
+owner: std::allocator 331534us
+single: tslf::allocator 508733us
+single: tslf0::allocator 755769us
+single: jemalloc::allocator 730228us
+multi: jemalloc::allocator 2850209us
+owner: jemalloc::allocator 3258355us
+single: winnie::allocator 100128us
+single: FSBAllocator 953712us
+multi: FSBAllocator 30778226us
+owner: FSBAllocator 31274030us
+single: FSBAllocator2 880657us
+multi: FSBAllocator2 30934377us
+owner: FSBAllocator2 31403325us
+single: boost::pool_allocator 2581172us
+single: boost::fast_pool_allocator 2139576us
+multi: boost::fast_pool_allocator 29176874us
+owner: boost::fast_pool_allocator 32665795us
+single: Winnie::CFastPoolAllocator 56865us
+multi: Winnie::CFastPoolAllocator 171784us
+owner: Winnie::CFastPoolAllocator 229987us
+single: threadalloc::allocator 158254us
+multi: threadalloc::allocator 469624us
+owner: threadalloc::allocator 693874us
+single: micro::allocator 805715us
+multi: micro::allocator 10762194us
+owner: micro::allocator 11152170us
+single: iron::allocator 1040385us
+single: tav::allocator 130948us
+multi: tav::allocator 346245us
+owner: tav::allocator 431261us
+single: lt::allocator 102828us
+multi: lt::allocator 231603us
+owner: lt::allocator 295225us
+single: dl::allocator 420578us
+multi: dl::allocator 2194603us
+owner: dl::allocator 2443303us
+
++---------------------------------------------------------------------+
+| comparison table (RELEASE) (MSC 180031101) Wed Jun 17 12:43:32 2015 |X
++---------------------------------------------------------------------+X
+ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+                                               THS RSM SFD AVG
+ 1st) winnie::allocator                        [ ] [ ] [ ] 33376 us (x3.31 times faster)
+ 2nd) Winnie::CFastPoolAllocator               [x] [ ] [ ] 76662 us (x1.44 times faster)
+ 3rd) lt::allocator                            [x] [ ] [ ] 98408 us (x1.12 times faster)
+ 4th) std::allocator                           [x] [ ] [ ] 110511 us (performs similar to standard allocator)
+ 5th) tav::allocator                           [x] [x] [ ] 143753 us (x1.3 times slower)
+ 6th) tslf::allocator                          [ ] [ ] [ ] 169577 us (x1.53 times slower)
+ 7th) threadalloc::allocator                   [x] [x] [ ] 231291 us (x2.09 times slower)
+ 8th) tslf0::allocator                         [ ] [x] [ ] 251923 us (x2.28 times slower)
+ 9th) iron::allocator                          [ ] [ ] [ ] 346795 us (x3.14 times slower)
+10th) dl::allocator                            [x] [ ] [ ] 814434 us (x7.37 times slower)
+11st) boost::pool_allocator                    [ ] [ ] [ ] 860390 us (x7.79 times slower)
+12nd) jemalloc::allocator                      [x] [x] [ ] 1086118 us (x9.83 times slower)
+13rd) micro::allocator                         [x] [x] [ ] 3717390 us (x33.6 times slower)
+14th) FSBAllocator                             [x] [ ] [ ] 10424676 us (x94.3 times slower)
+15th) FSBAllocator2                            [x] [x] [ ] 10467775 us (x94.7 times slower)
+16th) boost::fast_pool_allocator               [x] [ ] [ ] 10888598 us (x98.5 times slower)
+
+THS: THREAD_SAFE: safe to use in multithreaded scenarios (on is better)
+RSM: RESET_MEMORY: allocated contents are reset to zero (on is better)
+SFD: SAFE_DELETE: deallocated pointers are reset to zero (on is better)
+AVG: AVG_SPEED: average time for each benchmark (lower is better)
 ```
+
+## Older tests
+
+```lisp
 +---------------+
 | running tests |X
 +---------------+X

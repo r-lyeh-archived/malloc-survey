@@ -84,6 +84,11 @@ void operator delete[]( void *ptr ) { return std::free( ptr ); }
 //#include "elephant/elephant.hpp"
 //#include "elephant/elephant.cpp"
 
+#include "dlmalloc/dlmalloc.hpp"
+
+#include "tlsf/tlsf.hpp"
+#include "tlsf0/tlsf.hpp"
+
 namespace boost {
     void throw_exception( const std::exception &e )
     {}
@@ -119,6 +124,35 @@ bool &feature( int what )  {
     return dummy = false;
 }
 */
+
+// timing - rlyeh, public domain [ref] https://gist.github.com/r-lyeh/07cc318dbeee9b616d5e {
+#include <thread>
+#include <chrono>
+#if !defined(TIMING_USE_OMP) && ( defined(USE_OMP) || defined(_MSC_VER) /*|| defined(__ANDROID_API__)*/ )
+#   define TIMING_USE_OMP
+#   include <omp.h>
+#endif
+struct timing {
+    static double now() {
+#   ifdef TIMING_USE_OMP
+        static auto const epoch = omp_get_wtime(); 
+        return omp_get_wtime() - epoch;
+#   else
+        static auto const epoch = std::chrono::steady_clock::now(); // milli ms > micro us > nano ns
+        return std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::steady_clock::now() - epoch ).count() / 1000000.0;
+#   endif
+    }
+    template<typename FN>
+    static double bench( const FN &fn ) {
+        auto took = -now();
+        return ( fn(), took + now() );
+    }
+    static void sleep( double secs ) {
+        std::chrono::microseconds duration( (int)(secs * 1000000) );
+        std::this_thread::sleep_for( duration );    
+    }
+};
+// } timing
 
 
 template<typename TEST>
@@ -179,10 +213,10 @@ void benchmark_suite( int mode, const std::string &name, const TEST &container )
     if( mode & 1 ) {
         std::string id = std::string() + "single: " + name;
         std::cout << id;
-        clock_t span = clock();
+        double span = timing::now();
             single();
-        took += clock() - span;
-        std::cout << " " << took << std::endl;
+        took += (timing::now() - span) * 1000000;
+            std::cout << " " << int(took) << "us" << std::endl;
 #if 1
         int *x = 0;
         creator2(x);
@@ -196,16 +230,16 @@ void benchmark_suite( int mode, const std::string &name, const TEST &container )
         {
             std::string id = std::string() + "multi: " + name;
             std::cout << id;
-            clock_t span = clock();
+            double span = timing::now();
                 multi();
-            took += clock() - span;
-            std::cout << " " << took << std::endl;
+            took += (timing::now() - span) * 1000000;
+            std::cout << " " << int(took) << "us" << std::endl;
         }
         if (1)
         {
             std::string id = std::string() + "owner: " + name;
             std::cout << id;
-            clock_t span = clock();
+            double span = timing::now();
                 TEST s;
                 std::thread th1( [&](){ creator(s); } ); th1.join();
                 std::thread th2( [&](){ deleter(s); } ); th2.join();
@@ -217,8 +251,8 @@ void benchmark_suite( int mode, const std::string &name, const TEST &container )
                 std::thread th4( [&](){ deleter2(x); } ); th4.join();
                 if( x == 0 ) std::get<SAFE_DELETE>( feat[ name ] ) = true;
 #endif
-            took += clock() - span;
-            std::cout << " " << took << std::endl;
+            took += (timing::now() - span) * 1000000;
+            std::cout << " " << int(took) << "us" << std::endl;
         }
 
         std::get<THREAD_SAFE>( feat[ name ] ) = true;
@@ -252,11 +286,13 @@ int main() {
         enum { none = 0, single = 1, thread = 2, all = ~0 };
         // some suites got single only because... { - they crashed, or; - they deadlocked, or; - they took more than 30 secs to finish }
         //benchmark_suite( all, "elephant::allocator", std::list<int, elf::allocator<int> >());
+        benchmark_suite( all, "std::allocator", std::list<int, std::allocator<int> >());
+        benchmark_suite(single, "tslf::allocator", std::list<int, tlsf::allocator<int> >());
+        benchmark_suite(single, "tslf0::allocator", std::list<int, tlsf0::allocator<int> >());
         benchmark_suite( all, "jemalloc::allocator", std::list<int, jemalloc::allocator<int> >());
         benchmark_suite(single, "winnie::allocator", std::list<int, winnie::allocator<int> >());
         benchmark_suite( all, "FSBAllocator", std::list<int, FSBAllocator<int> >());
         benchmark_suite( all, "FSBAllocator2", std::list<int, FSBAllocator2<int> >());
-        benchmark_suite( all, "std::allocator", std::list<int, std::allocator<int> >());
         benchmark_suite(single, "boost::pool_allocator", std::list<int, boost::pool_allocator<int> >());
         benchmark_suite( all, "boost::fast_pool_allocator", std::list<int, boost::fast_pool_allocator<int> >());
         benchmark_suite( all, "Winnie::CFastPoolAllocator", std::list<int, Winnie::CFastPoolAllocator<int> >());
@@ -267,6 +303,7 @@ int main() {
       //benchmark_suite( all, "obstack::allocator", std::list<int, boost::arena::basic_obstack<int> >() );
         benchmark_suite( all, "tav::allocator", std::list<int, tav::allocator<int> >());
         benchmark_suite( all, "lt::allocator", std::list<int, lt::allocator<int> >());
+        benchmark_suite( all, "dl::allocator", std::list<int, dl::allocator<int> >());
 
         header( std::string() + "comparison table " +
             $release("(RELEASE)") + $debug("(DEBUG)") + " (MSC " + $string(_MSC_FULL_VER) + ") " __TIMESTAMP__);
@@ -286,7 +323,7 @@ int main() {
                 std::cout << " " << (std::get<THREAD_SAFE >(values) ? "[x]" : "[ ]");
 				std::cout << " " << (std::get<RESET_MEMORY>(values) ? "[x]" : "[ ]");
 				std::cout << " " << (std::get<SAFE_DELETE >(values) ? "[x]" : "[ ]");
-                std::cout << " " << int(std::get<AVG_SPEED>(values)) << " ms";
+                std::cout << " " << int(std::get<AVG_SPEED>(values)) << " us";
                 double factor = std::get<AVG_SPEED>(values)/default_allocator_time;
                 /**/ if( factor > 1.05 ) std::cout << " (x" << std::setprecision(3) << (    factor) << " times slower)";
                 else if( factor < 0.95 ) std::cout << " (x" << std::setprecision(3) << (1.0/factor) << " times faster)";

@@ -1,4 +1,6 @@
-// Jerry Coffin
+// based on code by Jerry Coffin (most likely Public Domain)
+// - rlyeh
+
 #pragma once
 
 #include <stdlib.h>
@@ -32,7 +34,7 @@ struct allocator {
     pointer allocate(size_type s, void const * = 0) {
         if (0 == s)
             return NULL;
-        pointer temp = (pointer)ltalloc(s * sizeof(T));
+        pointer temp = (pointer)ltmalloc(s * sizeof(T));
         if (temp == NULL)
             throw std::bad_alloc();
         return temp;
@@ -55,4 +57,3 @@ struct allocator {
     }
 };
 }
-
