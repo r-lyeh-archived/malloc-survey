@@ -36,8 +36,40 @@ THE SOFTWARE.
 #undef FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_PTHREAD
 #undef FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_GCC
 #define FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_OBJECT
-#include <mutex>
-typedef std::mutex FSBAllocator_Mutex;
+
+//#include <mutex>
+//typedef std::mutex FSBAllocator_Mutex;
+
+#include <atomic>
+class FSBAllocator_Mutex
+{
+public:
+#ifdef _MSC_VER
+	FSBAllocator_Mutex() {
+		lck.clear();
+	}
+#endif
+
+	inline void lock()
+	{
+		while (lck.test_and_set(std::memory_order_acquire))
+		{
+		}
+	}
+
+	inline void unlock()
+	{
+		lck.clear(std::memory_order_release);
+	}
+
+private:
+#ifdef _MSC_VER
+	std::atomic_flag lck;
+#else
+	std::atomic_flag lck = ATOMIC_FLAG_INIT;
+#endif
+};
+
 #endif
 
 #ifdef FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_BOOST

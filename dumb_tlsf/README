@@ -1,0 +1,143 @@
+
+
+Dumb TLSF
+
+An extremely dumb memory allocator in the Two-Level Segregate Fit category.
+This allocator keeps separate free lists for each size that it allocates.
+Unlike most TLSF allocators, it makes absolutely no effort to combine adjacent
+free blocks.
+
+In other words, it's a hotrod pool allocator with mixed sizes and extra features.
+
+Currently requires g++ and C++11.
+
+
+Performance characteristics:
+
+Tiny code size (< 10k compiled and optimized)
+Blazingly fast realtime alloc and free (except when more memory needs to be reserved)
+Even faster when sizes are known at compile-time (with optimization).
+Excellent best-case fragmentation (constant + 0% overhead!)
+Terrible worst-case fragmentation (almost unbounded)
+Average-case fragmentation depends on how you use it.
+No memory is automatically returned to the OS for other programs to use.
+
+
+Usage:
+
+ // Just dump this directly in your source tree.
+#include "dumb_tlsf/dumb_tlsf.cpp"
+
+ // All public functions are in the namespace dumb_tlsf.
+using namespace dumb_tlsf;
+
+template <class T>
+T* dalloc ();
+ // Allocate an object of type T.
+template <class T>
+void dfree (T*);
+ // Free a previously allocated object of type T.
+ // No error checking--freeing an object not allocated with dalloc() invites chaos.
+
+template <class T, class... Args>
+T* dnew (Args...);
+ // Allocate an object of type T and call a constructor with arbitrary arguments.
+template <class T>
+void ddelete (T*);
+ // Call the object's destructor and deallocate it.  Don't use this on polymorphic
+ // pointers whose target may be larger than the pointer's official superclass.
+template <class T>
+void ddelete (T*, size_t);
+ // Call the object's destructor and deallocate it, with the given size.
+
+void* dalloc (size_t);
+ // Allocate the given number of bytes.
+void dfree (void*, size_t);
+ // Free the given number of bytes.  Yes, you can use this to cut the end off of an
+ // allocated object, provided you later free the object under its new smaller size.
+
+void* dsalloc (size_t);
+template <class T>
+T* dsalloc ();
+template <class T, class... Args>
+T* dsnew (Args...);
+void dsfree (void*);
+template <class T>
+void dsdelete (T*);
+ // This set of functions stores the size of the object with the object, and frees it
+ // based on that size.  This adds some time and space overhead, but provides
+ // compatibility with malloc/free and new/delete.  Don't mix these with dalloc,
+ // dfree, dnew, and ddelete.
+
+struct _DS;
+ // If you make a class inherit from this, you can use C++ new, new[], delete, and
+ // delete[] syntax on it.  These will use dsalloc and dsfree.
+
+void dreserve (size_t size);
+ // Reserve the given amount of memory ahead of time.  This only works before
+ // anything has been allocated or immediately after the dapocalypse; otherwise it is
+ // a no-op.  Using this is not necessary, but is recommended if you want consistent
+ // realtime performance.
+void dset_alloc_size (size_t size);
+ // From now on, whenever we run out of reserved memory, this much more memory will
+ // be reserved.  The default alloc_size is one megabyte.  Try using dreserve
+ // instead.
+
+size_t dused_memory ();
+ // Get the total amount of memory used by Dumb TLSF.  Includes fragmentation
+ // overhead caused by freed-and-not-allocated chunks.  Does not include memory that
+ // has been reserved but never allocated.  Before you release a major program
+ // version, examine this after your program has been running for a while, and
+ // dreserve a bit more than it.  This number only goes up, and never comes down.
+size_t dallocated_memory ();
+ // Like dused_memory, but doesn't include the two-word header per reservation unit.
+ // Use this to detect leaks after you think you've freed everything manually.
+size_t dreserved_memory ();
+ // Get the total amount of memory reserved by Dumb TLSF, used or not.
+
+void dapocalypse ();
+ // Free all memory used by Dumb TLSF and start civilization anew.  Won't call
+ // destructors.  Will probably return the memory to the OS.
+
+
+Interface notes:
+
+The file dumb_tlsf.cpp does not have an include guard, so you can include separate
+copies in multiple namespaces.  This could be object-oriented, but that'd complicate
+the interface.
+
+Allocated chunks are aligned to 4 bytes under 32-bit and 8 bytes under 64-bit.
+
+If the allocation fails or something, then probably NULL will be returned.  But if
+that happens, you're probably screwed anyway.
+
+If you define DUMB_TLSF_PROMISE_NO_OVERFLOW before including dumb_tlsf.cpp, you are
+promising you will not exceed your reserved memory.  This may save a few cycles, but
+you will probably segfault if you allocate beyond what you dreserved.  It's
+probably not worth it.
+
+If you define DUMB_TLSF_ALLOCATOR(size_t) and DUMB_TLSF_DEALLOCATOR(void*, size_t),
+these will be used to reserve memory instead of malloc and free.
+
+Usage recommendations:
+
+Once you allocate a block of a certain size, that chunk of memory will always stay
+the same size.  So, if your allocation sizes stay predictably similar over time, you
+will enjoy efficient memory usage.  If your allocations vary wildly in size, you may
+start to see problems.
+
+In particular, if you allocate a number of objects of a certain size, then free them,
+and never allocate anything of that size again, you will incur a memory leak equal in
+size to the entire set of objects you allocated.  But if you allocate the same number
+of those objects again, you will not use any additional memory.
+
+So, this library is probably good for something like a video game, where realtime
+performance is crucial, but the amount and kinds of allocations stay more or less the
+same over time, and not so good for things like traditional string manipulation,
+where elements of many different sizes are allocated.  But if your strings are
+reference-counted ropes with fixed-size chunks, they would probably do very well with
+this allocator.
+
+Allocations larger than 7k fall through to malloc() and thus are not very realtime.
+However, allocations that large probably mean you shouldn't be using Dumb TLSF in the
+first place.

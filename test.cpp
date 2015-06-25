@@ -61,7 +61,7 @@ void operator delete[]( void *ptr ) { return std::free( ptr ); }
 #pragma comment(lib,"user32.lib")
 
 // [3]
-#define FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_STD
+//#define FSBALLOCATOR_USE_THREAD_SAFE_LOCKING_STD
 #include "FSBAllocator/FSBAllocator.hh"
 
 #include "balloc/balloc.hpp"
@@ -88,6 +88,9 @@ void operator delete[]( void *ptr ) { return std::free( ptr ); }
 
 #include "tlsf/tlsf.hpp"
 #include "tlsf0/tlsf.hpp"
+
+#include "dumb_tlsf/dumb_tlsf.hpp"
+#include "dumb_tlsf/dumb_tlsf.cpp"
 
 namespace boost {
     void throw_exception( const std::exception &e )
@@ -287,14 +290,15 @@ int main() {
         // some suites got single only because... { - they crashed, or; - they deadlocked, or; - they took more than 30 secs to finish }
         //benchmark_suite( all, "elephant::allocator", std::list<int, elf::allocator<int> >());
         benchmark_suite( all, "std::allocator", std::list<int, std::allocator<int> >());
-        benchmark_suite(single, "tslf::allocator", std::list<int, tlsf::allocator<int> >());
-        benchmark_suite(single, "tslf0::allocator", std::list<int, tlsf0::allocator<int> >());
+        benchmark_suite(single, "tlsf::allocator", std::list<int, tlsf::allocator<int> >());
+        benchmark_suite(single, "tlsf0::allocator", std::list<int, tlsf0::allocator<int> >());
+        benchmark_suite(single, "dumb_tlsf::allocator", std::list<int, dumb_tlsf::allocator<int> >());
         benchmark_suite( all, "jemalloc::allocator", std::list<int, jemalloc::allocator<int> >());
         benchmark_suite(single, "winnie::allocator", std::list<int, winnie::allocator<int> >());
-        benchmark_suite( all, "FSBAllocator", std::list<int, FSBAllocator<int> >());
-        benchmark_suite( all, "FSBAllocator2", std::list<int, FSBAllocator2<int> >());
+        benchmark_suite(single, "FSBAllocator", std::list<int, FSBAllocator<int> >());
+        benchmark_suite(single, "FSBAllocator2", std::list<int, FSBAllocator2<int> >());
         benchmark_suite(single, "boost::pool_allocator", std::list<int, boost::pool_allocator<int> >());
-        benchmark_suite( all, "boost::fast_pool_allocator", std::list<int, boost::fast_pool_allocator<int> >());
+        benchmark_suite(single, "boost::fast_pool_allocator", std::list<int, boost::fast_pool_allocator<int> >());
         benchmark_suite( all, "Winnie::CFastPoolAllocator", std::list<int, Winnie::CFastPoolAllocator<int> >());
         benchmark_suite( all, "threadalloc::allocator", std::list<int, threadalloc::allocator<int> >());
         benchmark_suite( all, "micro::allocator", std::list<int, micro::allocator<int> >());
