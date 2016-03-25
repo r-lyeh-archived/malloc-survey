@@ -1,18 +1,15 @@
-// Jerry Coffin
-#pragma once
+// based on code by Jerry Coffin (most likely Public Domain)
+// - rlyeh
 
-#ifdef max
-#undef max
-#endif
+#pragma once
 
 #include <stdlib.h>
 #include <new>
 #include <limits>
 
-void* imalloc( size_t size );
-void  ifree( void* p );
+#include "winnie_alloc.h"
 
-namespace iron {
+namespace winnie1 {
 template <class T>
 struct allocator {
     typedef size_t size_type;
@@ -37,14 +34,14 @@ struct allocator {
     pointer allocate(size_type s, void const * = 0) {
         if (0 == s)
             return NULL;
-        pointer temp = (pointer)imalloc(s * sizeof(T));
+        pointer temp = (pointer)Winnie::Alloc(s * sizeof(T));
         if (temp == NULL)
             throw std::bad_alloc();
         return temp;
     }
 
     void deallocate(pointer p, size_type) {
-        ifree(p);
+        Winnie::Free(p);
     }
 
     size_type max_size() const throw() {
@@ -60,4 +57,3 @@ struct allocator {
     }
 };
 }
-

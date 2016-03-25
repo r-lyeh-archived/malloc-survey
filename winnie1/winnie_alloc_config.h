@@ -27,13 +27,13 @@ namespace Config
   const unsigned first_os_block_size_log = 20; //1 MB.
 
   /**when winnie_alloc can't allocate memory, it should return NULL or throw std::bad_alloc?*/
-  #define WINNIE_ALLOC_THROW_STD_BADALLOC 1
+  #define WINNIE_ALLOC_THROW_STD_BADALLOC 0
 
   /**
   use Winnie::Config::malloc_threshold or not?
   If USE_MALLOC_THRESHOLD  is 0, then all refereces to malloc/free are removed and parameter malloc_threshold not used
   */
-  #define WINNIE_ALLOC_USE_MALLOC_THRESHOLD 0
+  #define WINNIE_ALLOC_USE_MALLOC_THRESHOLD 1
 
   /** if requested size of memory is greater or equal `malloc_threshold`, then standart function malloc used. 
   winnie_alloc rounds size of every requested block to the next power of two, so when user allocate very 

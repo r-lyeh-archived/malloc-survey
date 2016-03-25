@@ -35,7 +35,9 @@
 
 
 // [1]
+#define BOOST_ERROR_CODE_HEADER_ONLY
 #include <boost/pool/pool_alloc.hpp>
+
 
 #if 0
 // comment out before making an .exe just to be sure these are not defined elsewhere,
@@ -85,6 +87,8 @@ void operator delete[]( void *ptr ) { return std::free( ptr ); }
 //#include "elephant/elephant.cpp"
 
 #include "dlmalloc/dlmalloc.hpp"
+extern "C" int sbrk_init(size_t);
+
 
 #include "tlsf/tlsf.hpp"
 #include "tlsf0/tlsf.hpp"
@@ -96,6 +100,8 @@ namespace boost {
     void throw_exception( const std::exception &e )
     {}
 }
+
+#include "winnie1/winnie.hpp"
 
 #include <thread>
 #include <map>
@@ -280,7 +286,7 @@ int main() {
             std::cout << "+-" << std::string( title.size(), '-' ) << "-+" << std::endl;
             std::cout << "| " <<              title               << " |X" << std::endl;
             std::cout << "+-" << std::string( title.size(), '-' ) << "-+X" << std::endl;
-			std::cout << " " << std::string( title.size() + 4, 'X' ) << std::endl;
+            std::cout << " " << std::string( title.size() + 4, 'X' ) << std::endl;
             std::cout << std::endl;
         };
 
@@ -294,20 +300,23 @@ int main() {
         benchmark_suite(single, "tlsf0::allocator", std::list<int, tlsf0::allocator<int> >());
         benchmark_suite(single, "dumb_tlsf::allocator", std::list<int, dumb_tlsf::allocator<int> >());
         benchmark_suite( all, "jemalloc::allocator", std::list<int, jemalloc::allocator<int> >());
-        benchmark_suite(single, "winnie::allocator", std::list<int, winnie::allocator<int> >());
+        benchmark_suite(single, "winnie1::allocator", std::list<int, winnie1::allocator<int> >());
+        benchmark_suite(single, "winnie2::allocator", std::list<int, winnie2::allocator<int> >());
         benchmark_suite(single, "FSBAllocator", std::list<int, FSBAllocator<int> >());
         benchmark_suite(single, "FSBAllocator2", std::list<int, FSBAllocator2<int> >());
         benchmark_suite(single, "boost::pool_allocator", std::list<int, boost::pool_allocator<int> >());
         benchmark_suite(single, "boost::fast_pool_allocator", std::list<int, boost::fast_pool_allocator<int> >());
-        benchmark_suite( all, "Winnie::CFastPoolAllocator", std::list<int, Winnie::CFastPoolAllocator<int> >());
+        benchmark_suite( all, "winnie3::CFastPoolAllocator", std::list<int, Winnie::CFastPoolAllocator<int> >());
         benchmark_suite( all, "threadalloc::allocator", std::list<int, threadalloc::allocator<int> >());
-        benchmark_suite( all, "micro::allocator", std::list<int, micro::allocator<int> >());
+        benchmark_suite( all, "microallocator::allocator", std::list<int, micro::allocator<int> >());
         benchmark_suite(none, "ballocator::allocator", std::list<int, ballocator::allocator<int> >());
         benchmark_suite(single, "iron::allocator", std::list<int, iron::allocator<int> >());
       //benchmark_suite( all, "obstack::allocator", std::list<int, boost::arena::basic_obstack<int> >() );
         benchmark_suite( all, "tav::allocator", std::list<int, tav::allocator<int> >());
-        benchmark_suite( all, "lt::allocator", std::list<int, lt::allocator<int> >());
-        benchmark_suite( all, "dl::allocator", std::list<int, dl::allocator<int> >());
+        benchmark_suite( all, "ltalloc::allocator", std::list<int, lt::allocator<int> >());
+
+        sbrk_init( 120 * 1024 * 1024 );
+        benchmark_suite( single, "dlmalloc::allocator", std::list<int, dl::allocator<int> >());
 
         header( std::string() + "comparison table " +
             $release("(RELEASE)") + $debug("(DEBUG)") + " (MSC " + $string(_MSC_FULL_VER) + ") " __TIMESTAMP__);
@@ -325,8 +334,8 @@ int main() {
                 else                     std::cout << pos++ << "th)";
                 std::cout << " " << (name)+std::string(40 - name.size(), ' ');
                 std::cout << " " << (std::get<THREAD_SAFE >(values) ? "[x]" : "[ ]");
-				std::cout << " " << (std::get<RESET_MEMORY>(values) ? "[x]" : "[ ]");
-				std::cout << " " << (std::get<SAFE_DELETE >(values) ? "[x]" : "[ ]");
+                std::cout << " " << (std::get<RESET_MEMORY>(values) ? "[x]" : "[ ]");
+                std::cout << " " << (std::get<SAFE_DELETE >(values) ? "[x]" : "[ ]");
                 std::cout << " " << int(std::get<AVG_SPEED>(values)) << " us";
                 double factor = std::get<AVG_SPEED>(values)/default_allocator_time;
                 /**/ if( factor > 1.05 ) std::cout << " (x" << std::setprecision(3) << (    factor) << " times slower)";
@@ -356,3 +365,6 @@ int main() {
 
     return -1;
 }
+
+#include "winnie1/system_alloc.cpp"
+#include "winnie1/winnie_alloc.cpp"

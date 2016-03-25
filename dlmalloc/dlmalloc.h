@@ -1,6 +1,11 @@
 #pragma once
 #define USE_DL_PREFIX 1
-#define USE_LOCKS 1
+//#define USE_LOCKS 1
+//#define USE_SPIN_LOCKS 1
+#define INSECURE 1
+#define HAVE_MMAP 0
+#define HAVE_MORECORE 1
+#define MORECORE sbrk
 
 /*
   Default header file for malloc-2.8.x, written by Doug Lea

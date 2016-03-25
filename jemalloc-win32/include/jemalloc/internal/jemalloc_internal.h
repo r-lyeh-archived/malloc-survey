@@ -3,6 +3,7 @@
 #include <math.h>
 #ifdef _WIN32
 #  include <windows.h>
+#  if _MSC_VER < 1900
 #  define ENOENT ERROR_PATH_NOT_FOUND
 #  define EINVAL ERROR_BAD_ARGUMENTS
 #  define EAGAIN ERROR_OUTOFMEMORY
@@ -11,6 +12,7 @@
 #  define ENOMEM ERROR_NOT_ENOUGH_MEMORY
 #  undef ERANGE
 #  define ERANGE ERROR_INVALID_DATA
+#  endif
 #else
 #  include <sys/param.h>
 #  include <sys/mman.h>

@@ -11,8 +11,8 @@
 //(c) Winnie  woowoowoow 'at' bk.ru
 //fast memory allocation routines.
 
-#include "winnie_alloc/winnie_alloc.h"
-#include "winnie_alloc/system_alloc.h"
+#include "winnie_alloc.h"
+#include "system_alloc.h"
 #include <new> //for std::bad_alloc
 #include <string.h>
 

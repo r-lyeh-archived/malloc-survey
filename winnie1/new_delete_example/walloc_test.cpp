@@ -149,7 +149,7 @@ void Test3()
   LeaveCriticalSection(&COUT_CRITICAL_SECTION);
 }
 
-#include "winnie_alloc/winnie_alloc.h"
+#include "winnie_alloc.h"
 
 void TestRealloc()
 {
@@ -178,7 +178,7 @@ void TestRealloc()
 
 #include "new_delete.h"
 
-#include "winnie_alloc/winnie_alloc.h"
+#include "winnie_alloc.h"
 
 void Test(void *)
 {

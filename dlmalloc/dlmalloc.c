@@ -1,6 +1,32 @@
 #include <errno.h>
 #include "dlmalloc.h"
 
+#include <stdlib.h>
+static unsigned char* sbrk_buffer_base = 0;
+static unsigned char* sbrk_buffer = 0;
+static unsigned char* sbrk_buffer_eof = 0;
+void *sbrk( ptrdiff_t increment ) {
+    unsigned char *curr = sbrk_buffer;
+    unsigned char *next = sbrk_buffer + increment;
+    if( next <= sbrk_buffer_eof) {
+        return sbrk_buffer = next, curr;
+    } else {
+        return (void*)-1;
+    }
+}
+int sbrk_init(size_t size) {
+    sbrk_buffer_base = (unsigned char*)malloc(size);
+
+    sbrk_buffer = sbrk_buffer_base;
+    sbrk_buffer_eof = sbrk_buffer_base + size;
+
+    memset(sbrk_buffer, 0, size);
+
+    dlmalloc_set_footprint_limit(size);
+    return 1;
+}
+
+
 /*
   This is a version (aka dlmalloc) of malloc/free/realloc written by
   Doug Lea and released to the public domain, as explained at
@@ -546,8 +572,12 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <tchar.h>
+#ifndef HAVE_MMAP
 #define HAVE_MMAP 1
+#endif
+#ifndef HAVE_MORECORE
 #define HAVE_MORECORE 0
+#endif
 #define LACKS_UNISTD_H
 #define LACKS_SYS_PARAM_H
 #define LACKS_SYS_MMAN_H

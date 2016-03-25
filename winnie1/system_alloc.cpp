@@ -4,7 +4,7 @@
 //this is part of winnie_alloc library
 //you may rewrite this functions if you like
 
-#include "winnie_alloc/system_alloc.h"
+#include "system_alloc.h"
 
 //#define WIN32_LEAN_AND_MEAN
 //#include <windows.h>

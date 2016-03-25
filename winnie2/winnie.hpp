@@ -3,6 +3,10 @@
 
 #pragma once
 
+#ifdef max
+#undef max
+#endif
+
 void *wmalloc( int granularity );
 void *wfree( void *ptr, int granularity );
 
@@ -36,7 +40,7 @@ void wdelete( T*& t ) {
 
 #include <memory>
 
-namespace winnie {
+namespace winnie2 {
 template <class T>
 struct allocator {
     typedef size_t size_type;
