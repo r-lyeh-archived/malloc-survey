@@ -33,7 +33,6 @@
 #include <iomanip>
 #include <time.h>
 
-
 // [1]
 #define BOOST_ERROR_CODE_HEADER_ONLY
 #include <boost/pool/pool_alloc.hpp>
@@ -102,6 +101,9 @@ namespace boost {
 }
 
 #include "winnie1/winnie.hpp"
+
+#include "nedmalloc/nedmalloc.hpp"
+//#include "nedmalloc/nedmalloc.c"
 
 #include <thread>
 #include <map>
@@ -298,6 +300,7 @@ int main() {
         benchmark_suite( all, "std::allocator", std::list<int, std::allocator<int> >());
         benchmark_suite(single, "tlsf::allocator", std::list<int, tlsf::allocator<int> >());
         benchmark_suite(single, "tlsf0::allocator", std::list<int, tlsf0::allocator<int> >());
+      //benchmark_suite(single, "tlsf1::allocator", std::list<int, tlsf1::allocator<int> >());
         benchmark_suite(single, "dumb_tlsf::allocator", std::list<int, dumb_tlsf::allocator<int> >());
         benchmark_suite( all, "jemalloc::allocator", std::list<int, jemalloc::allocator<int> >());
         benchmark_suite(single, "winnie1::allocator", std::list<int, winnie1::allocator<int> >());
@@ -309,14 +312,16 @@ int main() {
         benchmark_suite( all, "winnie3::CFastPoolAllocator", std::list<int, Winnie::CFastPoolAllocator<int> >());
         benchmark_suite( all, "threadalloc::allocator", std::list<int, threadalloc::allocator<int> >());
         benchmark_suite( all, "microallocator::allocator", std::list<int, micro::allocator<int> >());
-        benchmark_suite(none, "ballocator::allocator", std::list<int, ballocator::allocator<int> >());
-        benchmark_suite(single, "iron::allocator", std::list<int, iron::allocator<int> >());
-      //benchmark_suite( all, "obstack::allocator", std::list<int, boost::arena::basic_obstack<int> >() );
         benchmark_suite( all, "tav::allocator", std::list<int, tav::allocator<int> >());
         benchmark_suite( all, "ltalloc::allocator", std::list<int, lt::allocator<int> >());
+        benchmark_suite(none, "ballocator::allocator", std::list<int, ballocator::allocator<int> >());
+      //benchmark_suite(single, "iron::allocator", std::list<int, iron::allocator<int> >());
+      //benchmark_suite( all, "obstack::allocator", std::list<int, boost::arena::basic_obstack<int> >() );
 
         sbrk_init( 120 * 1024 * 1024 );
         benchmark_suite( single, "dlmalloc::allocator", std::list<int, dl::allocator<int> >());
+
+        benchmark_suite( all, "nedmalloc::allocator", std::list<int, ned::allocator<int> >());
 
         header( std::string() + "comparison table " +
             $release("(RELEASE)") + $debug("(DEBUG)") + " (MSC " + $string(_MSC_FULL_VER) + ") " __TIMESTAMP__);
